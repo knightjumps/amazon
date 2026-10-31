@@ -8,15 +8,23 @@ import amazon.catalog.Product;
 import amazon.common.Money;
 import amazon.notification.NotificationService;
 import amazon.payment.*;
+
 import java.time.Clock;
 import java.time.Duration;
 import java.util.*;
+
 import static amazon.account.Account.Role.*;
 
-/** In-memory application service and order store, intentionally one concurrency boundary. */
+/**
+ * In-memory application service and order store, intentionally one concurrency boundary.
+ */
 public final class OrderService {
-    private record CheckoutKey(String buyerId, String key) {}
-    private record CheckoutResult(ShoppingCart cart, Address address, PaymentMethod payment, String orderId) {}
+    private record CheckoutKey(String buyerId, String key) {
+    }
+
+    private record CheckoutResult(ShoppingCart cart, Address address, PaymentMethod payment, String orderId) {
+    }
+
     private final Catalog catalog;
     private final NotificationService notifications;
     private final Clock clock;
@@ -29,6 +37,7 @@ public final class OrderService {
         this.notifications = Objects.requireNonNull(notifications);
         this.clock = Objects.requireNonNull(clock);
     }
+
     public synchronized Order checkout(Account buyer, ShoppingCart cart, Address address,
                                        PaymentMethod payment, String requestKey) {
         buyer.require(BUYER);
@@ -81,6 +90,7 @@ public final class OrderService {
             }
         }
     }
+
     public synchronized Order cancel(Account buyer, String orderId) {
         Order order = get(buyer, orderId);
         if (order.status() == OrderStatus.CANCELLED) return order;
@@ -101,6 +111,7 @@ public final class OrderService {
         notifications.publish(buyer.id(), "Order cancelled: " + orderId);
         return cancelled;
     }
+
     public synchronized Order ship(Account admin, String orderId, String trackingId, Duration transitTime) {
         admin.require(ADMIN); // Admin stands in for a trusted fulfillment worker.
         if (trackingId == null || trackingId.isBlank() || transitTime == null || transitTime.isNegative())
@@ -113,6 +124,7 @@ public final class OrderService {
         notifications.publish(order.buyerId(), "Shipment in transit: " + trackingId);
         return shipped;
     }
+
     public synchronized Order deliver(Account admin, String orderId, boolean cashCollected) {
         admin.require(ADMIN);
         Order order = find(orderId);
@@ -126,16 +138,19 @@ public final class OrderService {
         notifications.publish(order.buyerId(), "Shipment delivered: " + shipment.trackingId());
         return delivered;
     }
+
     public synchronized Order get(Account buyer, String orderId) {
         buyer.require(BUYER);
         Order order = find(orderId);
         if (!order.buyerId().equals(buyer.id())) throw new SecurityException("Not order owner");
         return order;
     }
+
     public synchronized List<Order> history(Account buyer) {
         buyer.require(BUYER);
         return orders.values().stream().filter(o -> o.buyerId().equals(buyer.id())).toList();
     }
+
     private Order find(String id) {
         Order order = orders.get(id);
         if (order == null) throw new IllegalArgumentException("Unknown order: " + id);

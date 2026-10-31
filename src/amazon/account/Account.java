@@ -3,9 +3,12 @@ package amazon.account;
 import java.util.Objects;
 import java.util.Set;
 
-/** Identity is immutable; account blocking affects subsequent operations. */
+/**
+ * Identity is immutable; account blocking affects subsequent operations.
+ */
 public final class Account {
-    public enum Role { BUYER, SELLER, ADMIN }
+    public enum Role {BUYER, SELLER, ADMIN}
+
     private final String id;
     private final String name;
     private final Set<Role> roles;
@@ -18,16 +21,25 @@ public final class Account {
         this.name = name;
         this.roles = Set.copyOf(roles);
     }
-    public String id() { return id; }
-    public String name() { return name; }
+
+    public String id() {
+        return id;
+    }
+
+    public String name() {
+        return name;
+    }
+
     public void requireActive() {
         if (blocked) throw new IllegalStateException("Account is blocked");
     }
+
     public void require(Role role) {
         requireActive();
         if (!roles.contains(Objects.requireNonNull(role)))
             throw new SecurityException("Missing role: " + role);
     }
+
     public void block(Account administrator) {
         administrator.require(Role.ADMIN);
         blocked = true;

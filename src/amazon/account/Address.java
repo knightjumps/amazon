@@ -1,6 +1,8 @@
 package amazon.account;
 
-/** An immutable address is safe to snapshot into an order. Postal codes are strings. */
+/**
+ * An immutable address is safe to snapshot into an order. Postal codes are strings.
+ */
 public record Address(String street, String city, String postalCode, String country) {
     public Address {
         if (street == null || street.isBlank() || city == null || city.isBlank()

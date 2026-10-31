@@ -1,3 +1,3 @@
 package amazon.order;
 
-public enum OrderStatus { CONFIRMED, SHIPPED, DELIVERED, CANCELLED }
+public enum OrderStatus {CONFIRMED, SHIPPED, DELIVERED, CANCELLED}

@@ -5,14 +5,18 @@ import amazon.common.Money;
 import amazon.notification.NotificationService;
 import amazon.order.*;
 import amazon.payment.*;
+
 import java.time.Clock;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import static amazon.account.Account.Role.*;
 
-/** Run this class. Checks throw AssertionError even when JVM assertions are disabled. */
+/**
+ * Run this class. Checks throw AssertionError even when JVM assertions are disabled.
+ */
 public class Main {
     public static void main(String[] args) throws Exception {
         Catalog catalog = new Catalog();
@@ -117,7 +121,9 @@ public class Main {
 
         section("7. Failed notification cannot undo a successful purchase");
         NotificationService failingNotifications = new NotificationService(List.of(
-                (id, text) -> { throw new IllegalStateException("Email temporarily unavailable"); }));
+                (id, text) -> {
+                    throw new IllegalStateException("Email temporarily unavailable");
+                }));
         OrderService resilient = new OrderService(catalog, failingNotifications, Clock.systemUTC());
         ShoppingCart anotherCart = new ShoppingCart(otherBuyer);
         anotherCart.add("book", 1);
@@ -159,18 +165,27 @@ public class Main {
             for (Future<?> future : futures) future.get(10, TimeUnit.SECONDS);
             check(successes.get() == 1 && catalog.available("last") == 0, "Only one buyer succeeds");
             System.out.println("  8 simultaneous buyers; exactly 1 purchase; stock = 0");
-        } finally { pool.shutdownNow(); }
+        } finally {
+            pool.shutdownNow();
+        }
     }
+
     private static Account account(String id, Account.Role... roles) {
         return new Account(id, id, Set.of(roles));
     }
-    private static void section(String text) { System.out.println("\n" + text); }
+
+    private static void section(String text) {
+        System.out.println("\n" + text);
+    }
+
     private static void check(boolean condition, String message) {
         if (!condition) throw new AssertionError(message);
     }
+
     private static void expect(Class<? extends RuntimeException> type, Runnable action) {
-        try { action.run(); }
-        catch (RuntimeException failure) {
+        try {
+            action.run();
+        } catch (RuntimeException failure) {
             if (!type.isInstance(failure)) throw new AssertionError("Unexpected failure", failure);
             System.out.println("  Expected rejection: " + failure.getMessage());
             return;
